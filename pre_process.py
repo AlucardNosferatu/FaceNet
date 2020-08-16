@@ -16,7 +16,7 @@ def ensure_dlib_model():
         import urllib.request
         urllib.request.urlretrieve("http://dlib.net/files/shape_predictor_5_face_landmarks.dat.bz2",
                                    filename="models/shape_predictor_5_face_landmarks.dat.bz2")
-
+        extract_bz2(predictor_path)
 
 def extract(folder):
     filename = '{}.zip'.format(folder)
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     ensure_folder('data')
     ensure_folder('models')
     ensure_dlib_model()
-    extract_bz2(predictor_path)
+
 
     # Load all the models we need: a detector to find the faces, a shape predictor
     # to find face landmarks so we can precisely localize the face

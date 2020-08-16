@@ -5,8 +5,8 @@ import os
 import cv2 as cv
 import dlib
 import numpy as np
-from keras.applications.inception_resnet_v2 import preprocess_input
-from keras.utils import Sequence
+from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
+from tensorflow.keras.utils import Sequence
 
 from augmentor import aug_pipe
 from config import batch_size, img_size, channel, embedding_size, image_folder, lfw_folder, predictor_path

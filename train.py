@@ -1,9 +1,6 @@
 import argparse
-
-import keras
 import tensorflow as tf
-from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
-from keras.utils import multi_gpu_model
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
 from config import patience, epochs, num_train_samples, num_lfw_valid_samples, batch_size
 from data_generator import DataGenSequence

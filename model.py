@@ -1,9 +1,9 @@
-import keras.backend as K
+import tensorflow.keras.backend as K
 import tensorflow as tf
-from keras.applications.inception_resnet_v2 import InceptionResNetV2
-from keras.layers import Input, Dense, concatenate, Lambda
-from keras.models import Model
-from keras.utils import plot_model
+from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
+from tensorflow.keras.layers import Input, Dense, concatenate, Lambda
+from tensorflow.keras.models import Model
+from tensorflow.keras.utils import plot_model
 
 from config import img_size, channel, embedding_size
 
