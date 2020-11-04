@@ -11,7 +11,7 @@ import numpy as np
 from keras.applications.inception_resnet_v2 import preprocess_input
 from tqdm import tqdm
 
-from config import img_size, image_folder, identity_annot_filename, num_images
+from Base.config import img_size, image_folder, identity_annot_filename, num_images
 
 
 class InferenceWorker(Process):
@@ -29,7 +29,7 @@ class InferenceWorker(Process):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self.gpuid)
         print("InferenceWorker init, GPU ID: {}".format(self.gpuid))
 
-        from model import build_model
+        from Base.model import build_model
 
         # load models
         model_weights_path = 'models/model.00-0.0296.hdf5'

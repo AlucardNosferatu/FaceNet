@@ -1,18 +1,17 @@
 import argparse
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 
-from config import patience, epochs, num_train_samples, num_lfw_valid_samples, batch_size
-from data_generator import DataGenSequence
-from model import build_model
-from utils import get_available_gpus, get_available_cpus, ensure_folder, triplet_loss, get_smallest_loss, get_best_model
+from Base.config import patience, epochs, num_train_samples, num_lfw_valid_samples, batch_size
+from Base.data_generator import DataGenSequence
+from Base.model import build_model
+from Base.utils import get_available_cpus, ensure_folder, triplet_loss, get_smallest_loss, get_best_model
 
 if __name__ == '__main__':
     # Parse arguments
     ap = argparse.ArgumentParser()
     args = vars(ap.parse_args())
-    checkpoint_models_path = 'models/'
+    checkpoint_models_path = '../models/'
     pretrained_path = get_best_model()
     ensure_folder('models/')
 

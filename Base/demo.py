@@ -8,9 +8,9 @@ import keras.backend as K
 import numpy as np
 from keras.applications.inception_resnet_v2 import preprocess_input
 
-from config import img_size, channel, embedding_size, lfw_folder
-from model import build_model
-from utils import get_best_model
+from Base.config import img_size, channel, embedding_size, lfw_folder
+from Base.model import build_model
+from Base.utils import get_best_model
 
 if __name__ == '__main__':
     model = build_model()
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     num_samples = 10
     print('loading valid samples(LFW)')
-    with open('data/lfw_val_triplets.json', 'r') as file:
+    with open('../data/lfw_val_triplets.json', 'r') as file:
         samples = json.load(file)
     image_folder = lfw_folder
     samples = random.sample(samples, num_samples)
@@ -76,10 +76,10 @@ if __name__ == '__main__':
             result['distance_{}_{}_p'.format(i, j)] = distance_i_j_p
             result['distance_{}_{}_n'.format(i, j)] = distance_i_j_n
 
-    with open('result.json', 'w') as file:
+    with open('../result.json', 'w') as file:
         json.dump(result, file, indent=4)
 
-    from template import replace
+    from Base.template import replace
 
     replace()
 

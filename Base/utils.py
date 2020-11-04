@@ -9,7 +9,7 @@ import tensorflow as tf
 from tensorflow.python.client import device_lib
 from tqdm import tqdm
 
-from config import alpha, identity_annot_filename, num_train_samples, lfw_folder
+from Base.config import alpha, identity_annot_filename, num_train_samples, lfw_folder
 
 
 def ensure_folder(folder):
@@ -118,7 +118,7 @@ def get_train_images():
 
 
 def get_lfw_images():
-    with open('data/people.txt', 'r') as file:
+    with open('../data/people.txt', 'r') as file:
         lines = file.readlines()
 
     names = []
@@ -141,7 +141,7 @@ def get_lfw_images():
 
 
 def get_lfw_pairs():
-    with open('data/pairs.txt', 'r') as file:
+    with open('../data/pairs.txt', 'r') as file:
         lines = file.readlines()
 
     pairs = []
@@ -172,7 +172,7 @@ def get_smallest_loss():
     import re
     pattern = 'model.(?P<epoch>\d+)-(?P<val_loss>[0-9]*\.?[0-9]*).hdf5'
     p = re.compile(pattern)
-    losses = [float(p.match(f).groups()[1]) for f in os.listdir('models/') if p.match(f)]
+    losses = [float(p.match(f).groups()[1]) for f in os.listdir('../models/') if p.match(f)]
     if len(losses) == 0:
         import sys
         return sys.float_info.max
@@ -191,11 +191,11 @@ def get_latest_model():
         return None
 
 
-def get_best_model():
+def get_best_model(path='../models/'):
     import re
     pattern = 'model.(?P<epoch>\d+)-(?P<val_loss>[0-9]*\.?[0-9]*).hdf5'
     p = re.compile(pattern)
-    files = [f for f in os.listdir('models/') if p.match(f)]
+    files = [f for f in os.listdir(path) if p.match(f)]
     filename = None
     if len(files) > 0:
         losses = [float(p.match(f).groups()[1]) for f in files]

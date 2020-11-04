@@ -49,7 +49,7 @@ if __name__ == '__main__':
     import json
     import random
     import os
-    from config import image_folder, img_size
+    from Base.config import image_folder, img_size
     import cv2 as cv
 
     print('loading train samples')

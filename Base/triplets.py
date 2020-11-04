@@ -7,8 +7,8 @@ from multiprocessing import Pool
 import numpy as np
 from tqdm import tqdm
 
-from config import alpha, num_train_samples, triplets_selection_batch_size, semi_hard_mode, hard_mode
-from utils import get_data_stats
+from Base.config import alpha, num_train_samples, triplets_selection_batch_size, semi_hard_mode, hard_mode
+from Base.utils import get_data_stats
 
 ids, images, image2id, id2images = get_data_stats()
 train_images = images

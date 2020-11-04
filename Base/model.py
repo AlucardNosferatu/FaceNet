@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Input, Dense, concatenate, Lambda
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import plot_model
 
-from config import img_size, channel, embedding_size
+from Base.config import img_size, channel, embedding_size
 
 
 def build_model():
@@ -40,6 +40,6 @@ if __name__ == '__main__':
     with tf.device("/cpu:0"):
         model = build_model()
     print(model.summary())
-    plot_model(model, to_file='model.svg', show_layer_names=True, show_shapes=True)
+    plot_model(model, to_file='../model.svg', show_layer_names=True, show_shapes=True)
 
     K.clear_session()

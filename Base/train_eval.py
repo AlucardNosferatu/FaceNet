@@ -1,18 +1,17 @@
+import json
 import multiprocessing as mp
 import os
 import pickle
 import queue
 from multiprocessing import Process
-from multiprocessing import Process
 
 import cv2 as cv
-import dlib
 import numpy as np
 from keras.applications.inception_resnet_v2 import preprocess_input
 from tqdm import tqdm
 
-from config import lfw_folder, img_size, channel, threshold, predictor_path
-from utils import get_lfw_images, get_lfw_pairs, get_best_model
+from Base.config import image_folder, img_size, channel, num_train_samples, SENTINEL, semi_hard_mode
+from Base.utils import get_best_model, get_train_images
 
 
 class InferenceWorker(Process):
@@ -23,8 +22,6 @@ class InferenceWorker(Process):
         self.in_queue = in_queue
         self.out_queue = out_queue
         self.signal_queue = signal_queue
-        self.detector = dlib.get_frontal_face_detector()
-        self.sp = dlib.shape_predictor(predictor_path)
 
     def run(self):
         # set enviornment
@@ -32,7 +29,7 @@ class InferenceWorker(Process):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(self.gpuid)
         print("InferenceWorker init, GPU ID: {}".format(self.gpuid))
 
-        from model import build_model
+        from Base.model import build_model
 
         # load models
         model = build_model()
@@ -45,7 +42,6 @@ class InferenceWorker(Process):
                     sample['a'] = self.in_queue.get(block=False)
                     sample['p'] = self.in_queue.get(block=False)
                     sample['n'] = self.in_queue.get(block=False)
-
                 except queue.Empty:
                     break
 
@@ -53,22 +49,11 @@ class InferenceWorker(Process):
 
                 for j, role in enumerate(['a', 'p', 'n']):
                     image_name = sample[role]
-                    filename = os.path.join(lfw_folder, image_name)
-                    image = cv.imread(filename)
-                    image = image[:, :, ::-1]  # RGB
-                    dets = self.detector(image, 1)
-
-                    num_faces = len(dets)
-                    if num_faces > 0:
-                        # Find the 5 face landmarks we need to do the alignment.
-                        faces = dlib.full_object_detections()
-                        for detection in dets:
-                            faces.append(self.sp(image, detection))
-                        image = dlib.get_face_chip(image, faces[0], size=img_size)
-                    else:
-                        image = cv.resize(image, (img_size, img_size), cv.INTER_CUBIC)
-
-                    batch_inputs[j, 0] = preprocess_input(image)
+                    filename = os.path.join(image_folder, image_name)
+                    image_bgr = cv.imread(filename)
+                    image_bgr = cv.resize(image_bgr, (img_size, img_size), cv.INTER_CUBIC)
+                    image_rgb = cv.cvtColor(image_bgr, cv.COLOR_BGR2RGB)
+                    batch_inputs[j, 0] = preprocess_input(image_rgb)
 
                 y_pred = model.predict([batch_inputs[0], batch_inputs[1], batch_inputs[2]])
                 a = y_pred[0, 0:128]
@@ -123,7 +108,7 @@ class Scheduler:
 
 def run(gpuids, q):
     # scan all files under img_path
-    names = get_lfw_images()
+    names = get_train_images()
 
     # init scheduler
     x = Scheduler(gpuids, q)
@@ -132,18 +117,15 @@ def run(gpuids, q):
     return x.start(names)
 
 
-SENTINEL = 1
-
-
 def listener(q):
-    pbar = tqdm(total=13233 // 3)
+    pbar = tqdm(total=num_train_samples // 3)
     for item in iter(q.get, None):
         pbar.update()
 
 
-def create_lfw_embeddings():
+def create_train_embeddings():
     gpuids = ['0', '1', '2', '3']
-    print(gpuids)
+    print('GPU IDs: ' + str(gpuids))
 
     manager = mp.Manager()
     q = manager.Queue()
@@ -151,45 +133,70 @@ def create_lfw_embeddings():
     proc.start()
 
     out_queue = run(gpuids, q)
-    out_list = []
+    out_dict = {}
     while out_queue.qsize() > 0:
-        out_list.append(out_queue.get())
+        item = out_queue.get()
+        out_dict[item['image_name']] = item['embedding']
 
-    with open("data/lfw_embeddings.p", "wb") as file:
-        pickle.dump(out_list, file)
+    with open("data/train_embeddings.p", "wb") as file:
+        pickle.dump(out_dict, file)
 
     q.put(None)
     proc.join()
 
 
-if __name__ == "__main__":
-    print('creating lfw embeddings')
-    create_lfw_embeddings()
-    with open('data/lfw_embeddings.p', 'rb') as file:
+train_images = get_train_images()
+
+
+def calculate_distance_list(image_i):
+    embedding_i = embeddings[image_i]
+    distance_list = np.empty(shape=(num_train_samples,), dtype=np.float32)
+    for j, image_j in enumerate(train_images):
+        embedding_j = embeddings[image_j]
+        dist = np.square(np.linalg.norm(embedding_i - embedding_j))
+        distance_list[j] = dist
+    return distance_list
+
+
+if __name__ == '__main__':
+    print('creating train embeddings')
+    create_train_embeddings()
+
+    print('loading train embeddings')
+    with open('data/train_embeddings.p', 'rb') as file:
         embeddings = pickle.load(file)
 
-    pairs = get_lfw_pairs()
-    y_true_list = []
-    y_pred_list = []
+    print('selecting train triplets')
+    from Base.triplets import select_train_triplets
 
-    print('evaluating lfw database')
-    for pair in tqdm(pairs):
-        image_name_1 = pair['image_name_1']
-        image_name_2 = pair['image_name_2']
-        y_true = pair['same_person']
-        y_true_list.append(y_true)
-        embedding_1 = np.array([x['embedding'] for x in embeddings if x['image_name'] == image_name_1][0])
-        embedding_2 = np.array([x['embedding'] for x in embeddings if x['image_name'] == image_name_2][0])
-        dist = np.square(np.linalg.norm(embedding_1 - embedding_2))
-        y_pred = dist <= threshold
-        y_pred_list.append(y_pred)
+    train_triplets = select_train_triplets(semi_hard_mode)
+    print('number of train triplets: ' + str(len(train_triplets)))
 
-    y = np.array(y_true_list).astype(np.int32)
-    pred = np.array(y_pred_list).astype(np.int32)
-    from sklearn import metrics
+    print('saving train triplets')
+    with open('data/train_triplets.json', 'w') as file:
+        json.dump(train_triplets, file)
 
-    print(y)
-    print(pred)
+    print('loading train triplets')
+    with open('data/train_triplets.json', 'r') as file:
+        train_triplets = json.load(file)
 
-    fpr, tpr, thresholds = metrics.roc_curve(y, pred)
-    print('showing lfw accuracy: ' + str(metrics.auc(fpr, tpr)))
+    print('calculate distances')
+    distance_a_p_list = []
+    distance_a_n_list = []
+    for triplet in tqdm(train_triplets):
+        embedding_a = embeddings[triplet['a']]
+        embedding_p = embeddings[triplet['p']]
+        embedding_n = embeddings[triplet['n']]
+        distance_a_p = np.square(np.linalg.norm(embedding_a - embedding_p))
+        distance_a_p_list.append(distance_a_p)
+        distance_a_n = np.square(np.linalg.norm(embedding_a - embedding_n))
+        distance_a_n_list.append(distance_a_n)
+
+    print('np.mean(distance_a_p_list)' + str(np.mean(distance_a_p_list)))
+    print('np.max(distance_a_p_list)' + str(np.max(distance_a_p_list)))
+    print('np.min(distance_a_p_list)' + str(np.min(distance_a_p_list)))
+    print('np.std(distance_a_p_list)' + str(np.std(distance_a_p_list)))
+    print('np.mean(distance_a_n_list)' + str(np.mean(distance_a_n_list)))
+    print('np.max(distance_a_n_list)' + str(np.max(distance_a_n_list)))
+    print('np.min(distance_a_n_list)' + str(np.min(distance_a_n_list)))
+    print('np.std(distance_a_n_list)' + str(np.std(distance_a_n_list)))

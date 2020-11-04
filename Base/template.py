@@ -3,10 +3,10 @@ import json
 
 
 def replace():
-    with open('result.json', 'r', encoding="utf-8") as file:
+    with open('../result.json', 'r', encoding="utf-8") as file:
         result = json.load(file)
 
-    with open('README.template', 'r', encoding="utf-8") as file:
+    with open('../README.template', 'r', encoding="utf-8") as file:
         text = file.readlines()
 
         text = ''.join(text)
@@ -25,7 +25,7 @@ def replace():
             distance_i_j_n = 'distance_{}_{}_n'.format(i, j)
             text = text.replace('$({})'.format(distance_i_j_n), "{0:.4f}".format(result[distance_i_j_n]))
 
-    with open('README.md', 'w', encoding="utf-8") as file:
+    with open('../README.md', 'w', encoding="utf-8") as file:
         file.write(text)
 
 

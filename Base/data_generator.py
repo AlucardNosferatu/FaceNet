@@ -8,9 +8,9 @@ import numpy as np
 from tensorflow.keras.applications.inception_resnet_v2 import preprocess_input
 from tensorflow.keras.utils import Sequence
 
-from augmentor import aug_pipe
-from config import batch_size, img_size, channel, embedding_size, image_folder, lfw_folder, predictor_path
-from utils import get_random_triplets
+from Base.augmentor import aug_pipe
+from Base.config import batch_size, img_size, channel, embedding_size, image_folder, lfw_folder, predictor_path
+from Base.utils import get_random_triplets
 
 
 class DataGenSequence(Sequence):
@@ -27,7 +27,7 @@ class DataGenSequence(Sequence):
         else:
             print('loading valid samples(LFW)')
             self.image_folder = lfw_folder
-            with open('data/lfw_val_triplets.json', 'r') as file:
+            with open('../data/lfw_val_triplets.json', 'r') as file:
                 self.samples = json.load(file)
 
         self.detector = dlib.get_frontal_face_detector()

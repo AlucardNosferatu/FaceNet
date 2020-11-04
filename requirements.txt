@@ -6,3 +6,5 @@ numpy~=1.18.4
 tensorflow~=2.2.0
 tensorflow-gpu~=2.2.0
 tqdm~=4.46.0
+requests~=2.23.0
+Flask~=1.1.2

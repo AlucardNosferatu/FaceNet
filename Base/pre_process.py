@@ -7,8 +7,8 @@ import cv2 as cv
 import dlib
 from tqdm import tqdm
 
-from config import img_size, identity_annot_filename, image_folder, predictor_path
-from utils import ensure_folder
+from Base.config import img_size, identity_annot_filename, image_folder, predictor_path
+from Base.utils import ensure_folder
 
 
 def ensure_dlib_model():

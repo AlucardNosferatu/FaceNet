@@ -12,13 +12,13 @@ valid_ratio = 0.005
 # 202,599 - 5,600 = 196,999, separate into two classes: train and valid.
 num_train_samples = 196998
 num_lfw_valid_samples = 2185    # LFW data set: 6000 pairs => 2185 triplets
-predictor_path = 'models/shape_predictor_5_face_landmarks.dat'
+predictor_path = '../models/shape_predictor_5_face_landmarks.dat'
 alpha = 0.2
 SENTINEL = 1
 threshold = 0.8
 
 image_folder = 'data/img_align_celeba'
-identity_annot_filename = 'data/identity_CelebA.txt'
+identity_annot_filename = '../data/identity_CelebA.txt'
 bbox_annot_filename = 'data/list_bbox_celeba.txt'
 lfw_folder = 'data/lfw_funneled'
 
