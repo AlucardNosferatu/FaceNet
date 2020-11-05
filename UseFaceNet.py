@@ -157,7 +157,7 @@ reload_records(read_npy=hot_start)
 
 
 def calculate_distance(vector_a, vector_b):
-    distance = np.linalg.norm(vector_a - vector_b) ** 2
+    distance = np.linalg.norm(vector_a - vector_b)
     return distance
 
 
@@ -167,7 +167,7 @@ def test_on_array(input_img):
     for index, vector in enumerate(vector_list):
         distance = calculate_distance(vector, input_vector)
         distance_list.append(distance)
-    distance = min(distance_list)
+    distance = float(min(distance_list))
     index = distance_list.index(distance)
     name = name_list[index]
     return name, distance
